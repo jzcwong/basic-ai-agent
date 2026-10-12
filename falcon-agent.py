@@ -2,9 +2,9 @@
 Test agent: CrowdStrike Falcon via a locally hosted falcon-mcp server.
 
 Usage:
-  python agent.py                                  # streamable-http at http://127.0.0.1:8000/mcp
-  python agent.py --transport sse --url http://127.0.0.1:8000/sse
-  python agent.py --transport stdio                # agent launches falcon-mcp via uvx
+  python falcon-agent.py                           # streamable-http at http://127.0.0.1:8000/mcp
+  python falcon-agent.py --transport sse --url http://127.0.0.1:8000/sse
+  python falcon-agent.py --transport stdio         # agent launches falcon-mcp via uvx
 """
 
 import argparse
@@ -216,10 +216,8 @@ class Agent:
         if not isinstance(args, dict):
             return f"Invalid arguments for {name}: expected an object", True
 
-        if name in REQUIRES_APPROVAL:
-            answer = input(f"\n[approval] Run {name}({json.dumps(args)})? [y/N] ")
-            if answer.strip().lower() != "y":
-                return "User denied this action.", True
+        if name in REQUIRES_APPROVAL and not self._approve(name, args):
+            return "User denied this action.", True
 
         try:
             content, is_error = self.mcp.call(name, args)
@@ -229,6 +227,11 @@ class Agent:
         if len(content) > MAX_TOOL_RESULT_CHARS:
             content = content[:MAX_TOOL_RESULT_CHARS] + "\n...[truncated; narrow the query]"
         return content, is_error
+
+    def _approve(self, name: str, args: dict) -> bool:
+        # Overridden by the web UI, which asks in the browser instead
+        answer = input(f"\n[approval] Run {name}({json.dumps(args)})? [y/N] ")
+        return answer.strip().lower() == "y"
 
     # ---- main loop ---------------------------------------------------------
 

@@ -5,6 +5,7 @@ This repo contains two demo scenarios, both built directly on the Anthropic API 
 |---|---|
 | `agent.py` | A simple agent with a local tool call and memory |
 | `falcon-agent.py` | An agent that connects to a locally running `falcon-mcp` server and calls its tools to interact with the CrowdStrike Falcon platform |
+| `falcon-agent-web.py` | The same Falcon agent with a chat interface in the browser |
 
 ## Pre-requisites (both scenarios)
 
@@ -83,3 +84,32 @@ By default it connects to `http://127.0.0.1:8000/mcp` over streamable-http. Othe
 python falcon-agent.py --transport stdio      # agent launches falcon-mcp itself via uvx (needs FALCON_* env vars)
 python falcon-agent.py --transport sse --url http://127.0.0.1:8000/sse
 ```
+
+### Web version: `falcon-agent-web.py`
+
+The same agent, with a chat page in the browser instead of the terminal. It reuses the MCP connection and agent loop from `falcon-agent.py` (so keep both files in the same folder), and the web server uses only the Python standard library, so there's nothing extra to install.
+
+With the falcon-mcp server running (see above), start it in a second terminal:
+
+```bash
+python falcon-agent-web.py
+```
+
+Then open http://127.0.0.1:8080 in your browser.
+
+What the page adds:
+- **Streaming replies** with formatted tables, lists and code blocks
+- **Tool call cards:** each Falcon tool call is shown as it runs; click one to see its input and result
+- **Approve / Deny buttons** for any tool listed in `REQUIRES_APPROVAL` (in place of the terminal y/N prompt)
+- **Stop** to cancel a reply and **New chat** to clear the conversation history
+- A **Tools** panel listing every tool falcon-mcp provides, with a filter
+- Example questions on the start screen to get going quickly
+
+It takes the same `--transport`, `--url` and `--modules` options as `falcon-agent.py`, plus `--port`:
+
+```bash
+python falcon-agent-web.py --port 9000                # if 8080 is already in use
+python falcon-agent-web.py --transport stdio          # agent launches falcon-mcp itself via uvx
+```
+
+> **Note:** the page has no login and acts with your Falcon API credentials, so it only listens on `127.0.0.1` and rejects requests from other websites. Don't expose it on a network or put it behind a proxy.
