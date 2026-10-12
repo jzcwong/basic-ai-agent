@@ -13,7 +13,7 @@ import anthropic
 
 client = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY from the environment
 
-MODEL = "claude-haiku-5-5"
+MODEL = "claude-haiku-4-5"
 
 SYSTEM_PROMPT = (
     "You are a helpful assistant who can answer order status questions "
